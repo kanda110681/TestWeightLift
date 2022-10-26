@@ -145,10 +145,12 @@ public class LiftController : MonoBehaviour
         if (ropes.Count <= 0 || !bRopesReady )
             return;
 
+
+        // Test only
         AnchorAwayDist = AnchorPtTransform.transform.position.y - ropes[0].transform.position.y;
         HeightDist = AnchorPtTransform.transform.position.y - ropes[0].ropeTailEnd.go.transform.position.y;
 
-        float h = (TopHeightDist - ropes[0].ropeTailEnd.go.transform.position.y);
+       // float h = (TopHeightDist - ropes[0].ropeTailEnd.go.transform.position.y);
        // Debug.Log("Tail Distance: " +  h);
 
         //if( h > 40.5 ) // testing

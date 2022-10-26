@@ -25,6 +25,7 @@ public class WeightManager : MonoBehaviour
             mc = currentWeightGO.GetComponent<MassConfiguration>();
             if( mc != null && mc.loadType != ls.LType )
             {
+                WallDisplay.DisplayWeight("0 kg");
                 DestroyImmediate(currentWeightGO);
                 currentWeightGO = null;
             }
@@ -79,6 +80,7 @@ public class WeightManager : MonoBehaviour
         if (currentWeightGO != null)
             Destroy(currentWeightGO);
         currentWeightGO = null;
+        WallDisplay.DisplayWeight("0 kg");
     }
 
     public void CheckAndDestroy(int lift)
