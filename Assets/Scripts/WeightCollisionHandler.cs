@@ -30,8 +30,8 @@ public class WeightCollisionHandler : MonoBehaviour
         float hr = 1.0f - ((LiftMaxHeight - HeightFromGround) / LiftMaxHeight);
         float downForce =  hr * 9.8f * mc.Mass * FORCE_FACTOR;
 
-        if(bApplyHeightForce)
-            mc.rb.AddForce(Vector3.down * downForce);
+        //if(bApplyHeightForce)
+        //    mc.rb.AddForce(Vector3.down * downForce);
 
 
      //  Debug.Log("Height: " + HeightFromGround + " DownForce: " + downForce + " Flag: "+ bApplyHeightForce);
