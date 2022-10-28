@@ -139,6 +139,8 @@ public class MassConfiguration : MonoBehaviour
         else
             return null;
 
+           
+
         connectionRigidBodies.Clear();
         foreach (var c in contacts)
         {

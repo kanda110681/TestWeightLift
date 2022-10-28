@@ -46,6 +46,9 @@ public class MainLiftController : MonoBehaviour
     {
         ls.cbUp -= LiftUP;
         ls.cbDown -= LiftDown;
+
+        if(liftSelector != null)
+             liftSelector.cbResetRequired -= LiftReset;
     }
 
     // Start is called before the first frame update
@@ -107,7 +110,7 @@ public class MainLiftController : MonoBehaviour
     {
         bReady = false;
 
-        Rigidbody mainRB, topRB;//, botRB;
+        Rigidbody mainRB, topRB;
         mainLiftGO = CreateGO("Main Lift", transform, out mainRB);
         var topGO = CreateGO("TopPt", mainLiftGO.transform, out topRB);
 
@@ -162,12 +165,16 @@ public class MainLiftController : MonoBehaviour
         mainRope.WeightDistribute(w);
     }
 
+    
+
     void LiftReset()
     {
-        Destroy(mainLiftGO);
+        bReady = false;
+
+        DestroyImmediate(mainLiftGO);
         mainLiftGO = null;
+
         SetupMainLift();
-        //mainLiftGO.transform.position = mainLiftResetPos;
     }
 
     void NewLiftConfigured()

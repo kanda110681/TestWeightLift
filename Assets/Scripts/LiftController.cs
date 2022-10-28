@@ -36,6 +36,10 @@ public class LiftController : MonoBehaviour
     {
         ls.cbAddMass -= AddMass;
         SetInvalidLift();
+
+        for (int i = 0; i < ropes.Count; i++)
+            ropes[i] = null;
+        ropes.Clear();
     }
 
     public void OnDestroy()
@@ -79,6 +83,8 @@ public class LiftController : MonoBehaviour
     {
         if (nRopes <= 0 || wm == null)
             return;
+
+        ropes.Clear();
 
         for (int i = 0; i < nRopes; i++)
             AddRope();
@@ -184,22 +190,22 @@ public class LiftController : MonoBehaviour
         }
     }
 
-    IEnumerator IncreaseStiffness()
-    {
-        foreach (Rope rope in ropes)
-        {
-            rope.spring = 50000f;
-            rope.damper = 50000f;
-        }
+    //IEnumerator IncreaseStiffness()
+    //{
+    //    foreach (Rope rope in ropes)
+    //    {
+    //        rope.spring = 50000f;
+    //        rope.damper = 50000f;
+    //    }
 
-        yield return new WaitForSeconds(1f);
+    //    yield return new WaitForSeconds(1f);
 
-        foreach (Rope rope in ropes)
-        {
-            rope.spring = ls.ElasticityScaleFactor;
-            rope.damper = ls.Damper;
-        }
-    }
+    //    foreach (Rope rope in ropes)
+    //    {
+    //        rope.spring = ls.ElasticityScaleFactor;
+    //        rope.damper = ls.Damper;
+    //    }
+    //}
 
     //public void Update()
     //{

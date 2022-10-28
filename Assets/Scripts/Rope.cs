@@ -103,6 +103,13 @@ public class Rope : MonoBehaviour
         bValid = true;
     }
 
+    private void OnDisable2()
+    {
+       // Debug.Log("Rope Destroyed");
+        DetachHeadJoint();
+        DetachTailJoint();
+    }
+
     public void Generate()
     {
         if (nLinks <= 0)
@@ -156,7 +163,22 @@ public class Rope : MonoBehaviour
         }
     }
 
-   
+    public void DetachTailJoint()
+    {
+        var fjt = ropeTailEnd.go.AddComponent<FixedJoint>();
+        fjt.connectedBody = null;
+
+        Destroy(fjt);
+    }
+
+    public void DetachHeadJoint()
+    {
+        if (topAnchorPtRB == null)
+            return;
+        var fjt = topAnchorPtRB.gameObject.AddComponent<FixedJoint>();
+        fjt.connectedBody = null;
+        Destroy(fjt);
+    }
 
     public void WeightDistribute(float linkWeight)
     {

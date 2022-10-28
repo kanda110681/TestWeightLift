@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public class LiftSelector : MonoBehaviour
 {
     //  public List<GameObject> lifts = new List<GameObject>();
-    LiftController liftContoller;
+    //LiftController liftContoller;
     GameObject currentLiftGO;
     public Material ropeMaterial;
 
@@ -94,9 +94,11 @@ public class LiftSelector : MonoBehaviour
 
     IEnumerator SetupRopes()
     {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
 
         cbResetRequired?.Invoke();
+
+        yield return new WaitForSeconds(0.2f);
 
         var lc = currentLiftGO.GetComponent<LiftController>();
 
