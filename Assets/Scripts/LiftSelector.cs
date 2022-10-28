@@ -1,10 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class LiftSelector : MonoBehaviour
 {
-    public List<GameObject> lifts = new List<GameObject>();
+    //  public List<GameObject> lifts = new List<GameObject>();
+    LiftController liftContoller;
+    GameObject currentLiftGO;
+    public Material ropeMaterial;
+
     public int lift = -1;
     public LiftSettings ls;
     public WeightManager wm;
@@ -14,124 +19,100 @@ public class LiftSelector : MonoBehaviour
 
     List<Rigidbody> connectionRigidBodies; 
 
-    GameObject currentLiftGO;
+    
     public Transform AnchorPtTransform;
+
+    public float TopHeightDistLimit = 68.0f;
+    public float BottomHeightDistLimit = 41f;
+
+    public UnityAction cbNewLiftConfigured;
+    public UnityAction cbResetRequired;
 
     public void Awake()
     {
         if(ls != null ) ls.nSelectedLift = -1;
+        ls.cbMassTypeChanged += MassTypeChanged;
         currentLiftGO = null;
+    }
+    void MassTypeChanged()
+    {
+        if (lift >= 0 && lift != 3)  // avoid 3 ropes
+            lift++; 
+        OnLiftSelector(lift);
     }
 
     public void OnLiftSelector(int type)
     {
-        type = type - 1;
-        if ( lifts.Count <= type )
-            return;
+        if(type != -1 )
+            WallDisplay.DisplayUnderProgress();
 
+        lift = -1;
+        if (type == 1)
+        {
+            lift = 0;
+        }
+        else if (type == 2)
+        {
+            lift = 1;
+        }
+        else if (type == 3) // 4 ropes
+        {
+            lift = 3;
+        }
+        
+        ls.nSelectedLift = lift;
+
+       
         if(currentLiftGO != null)
         {
+            var tmpLC = currentLiftGO.GetComponent<LiftController>();
+            if (tmpLC != null)
+                tmpLC.SetInvalidLift();
+
             Destroy(currentLiftGO);
             currentLiftGO = null;
         }
 
-        lift = type;
-        ls.nSelectedLift = lift;
+        if (lift < 0)
+            return;
 
         wm.CheckAndDestroy(lift);
 
-        currentLiftGO = Instantiate(lifts[lift]);
-        var lc = currentLiftGO.GetComponent<LiftController>();
+        currentLiftGO = new GameObject();
+        var lc = currentLiftGO.AddComponent<LiftController>();
+        lc.ls = ls;
+        lc.wm = wm;
         lc.AnchorPtTransform = AnchorPtTransform;
+        lc.TopHeightDistLimit = TopHeightDistLimit;
+        lc.BottomHeightDistLimit = BottomHeightDistLimit;
+        lc.ropeMaterial = ropeMaterial;
+        lc.Init();
 
-        lc.SetupRopes(type+1, ropeLength, ropeLinkLength);
-
-       
+        //lc.SetupRopes(type+1, ropeLength, ropeLinkLength, wm);
+        StartCoroutine(SetupRopes());
     }
 
-    public void LiftReset()
+    IEnumerator SetupRopes()
     {
-        // Debug.Log("Lift reset 1 ");
-        if (currentLiftGO == null)
-            return;
+        yield return new WaitForSeconds(0.2f);
 
-
-        Time.timeScale = 0;
-        ls.LiftReset();
+        cbResetRequired?.Invoke();
 
         var lc = currentLiftGO.GetComponent<LiftController>();
-        if (lc != null)
-        {
-            lc.LiftControllerReset();
-        }
 
-        //foreach (GameObject lift in lifts)
-        //{
-        //    var lc = lift.GetComponent<LiftController>();
-        //    if(lc != null)
-        //    {
-        //        lc.LiftControllerReset();
-        //    }
-        //}
-        Time.timeScale = 1;
+        int r = lift + 1;
+        if (lift == 3)
+            r = 4;
+        lc.SetupRopes(r, ropeLength, ropeLinkLength, wm);
+
+        cbNewLiftConfigured?.Invoke();
     }
 
-    Vector3 getPos(Rigidbody rb)
+    public LiftController GetCurrentLiftConotroller()
     {
-        return new Vector3(rb.gameObject.transform.position.x, rb.gameObject.transform.position.y, rb.gameObject.transform.position.z);
-    }
+        if(currentLiftGO != null)   
+            return currentLiftGO.GetComponent<LiftController>();
 
-    public void AttachWeightToLift()
-    {
-        if (lift < 0 || wm.currentWeightGO == null || currentLiftGO == null)
-            return;
-
-        var mc = wm.currentWeightGO.GetComponent<MassConfiguration>();
-       
-
-        var lc = currentLiftGO.GetComponent<LiftController>();
-        int nRopes = lc.ropes.Count;
-
-        if( mc.Mass > 1000 && nRopes == 1)
-        {
-            WallDisplay.Display("Limit 1000kg");
-            return;
-        }
-        else if (mc.Mass > 1500 && nRopes == 2)
-        {
-            WallDisplay.Display("Limit is 1500 kg");
-            return;
-        }
-        else if (mc.Mass > 2500 && nRopes == 3)
-        {
-            WallDisplay.Display("Limit is 2500 kg");
-            return;
-        }
-        else if (mc.Mass > 3000 && nRopes == 4)
-        {
-            WallDisplay.Display("Limit is 3000 kg");
-            return;
-        }
-
-        connectionRigidBodies = wm.PrepareWeightConfigurationConnections(nRopes);
-
-        int i = 0;
-        foreach(var rb in connectionRigidBodies)
-        {
-            var tail = lc.ropes[i].ropeTailEnd;
-
-            if(tail.tailJoint == null)
-            {
-                tail.AttachTailJoint();
-
-              //  Debug.Log("Tail Joint added. " + tail.tailJoint != null);
-            }
-
-            tail.go.transform.position = getPos(rb);
-            tail.tailJoint.connectedBody = wm.currentWeightGO.GetComponent<Rigidbody>();
-            i++;
-        }
-
-
+        return null;
     }
 }

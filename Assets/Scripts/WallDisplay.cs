@@ -10,6 +10,7 @@ public class WallDisplay : MonoBehaviour
     public TextMeshProUGUI weightDisplay;
     public static WallDisplay Instance;
     public float displayMsgTimer = 10f;
+    public GameObject progressPanel;
 
     private void Awake()
     {
@@ -23,7 +24,7 @@ public class WallDisplay : MonoBehaviour
         DontDestroyOnLoad(this);
     }
 
-    public void DisplayOnBackwall(string str)
+    void DisplayOnBackwall(string str)
     {
         backWallDisplay.text = str;
 
@@ -44,7 +45,7 @@ public class WallDisplay : MonoBehaviour
     }
 
 
-    public void WeightDisplay(string str)
+    void WeightDisplay(string str)
     {
         weightDisplay.text = str;
     }
@@ -53,5 +54,27 @@ public class WallDisplay : MonoBehaviour
         if (Instance == null)
             return;
         Instance.WeightDisplay(str);
+    }
+
+
+    IEnumerator DisplayUnderProgressPanelCR()
+    {
+        progressPanel.SetActive(true);
+
+        yield return new WaitForSeconds(1f);
+
+        progressPanel.SetActive(false);
+    }
+
+    void DisplayUnderProgressPanel()
+    {
+        StartCoroutine(DisplayUnderProgressPanelCR());
+    }
+
+    public static void DisplayUnderProgress()
+    {
+        if (Instance == null)
+            return;
+        Instance.DisplayUnderProgressPanel();
     }
 }

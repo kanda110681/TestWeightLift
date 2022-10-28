@@ -4,444 +4,300 @@ using UnityEngine;
 
 public class RopeLink 
 {
-    public Rope rope;
     public Vector3 []points = new Vector3[2];
-    public RopeLink prev, next;
-    public bool bEndLink = false ;
-
     public GameObject go;
     public Rigidbody rb;
     public HingeJoint joint;
-    public HingeJoint tailJoint;
-    public float linkLength;
 
-    public float spring = 2000f;
-    public float damper = 1000f;
-    public Material material;
-
-    public bool bUseLineRenderer ;
-
-    public RopeLink ()
-    {
-        prev = next = null;
-    }
-
-    public RopeLink(Vector3 p1, Vector3 p2, RopeLink prev=null, RopeLink next=null, bool bEndLink=false)
+    public RopeLink(Vector3 p1, Vector3 p2)
     {
         points[0] = p1; 
         points[1] = p2;
-        this.prev = prev;
-        this.next = next;
-        if(prev != null)
-            prev.next = this;
-        this.bEndLink = bEndLink;
+
+        CreateGameObjects();
     }
 
-    public void AttachPhysics()
+    void CreateGameObjects()
     {
         Vector3 center = (points[0] + points[1]) / 2.0f;
         go = new GameObject();
         go.transform.position = center;
-        go.transform.SetParent(rope.goLinks.transform);
 
         go.layer = LayerMask.NameToLayer("Rope");
 
         rb = go.AddComponent<Rigidbody>();
         rb.isKinematic = false;
         rb.useGravity = true;
-        rb.mass = 10f;
-        rb.drag = 1000f;
-        rb.angularDrag = 100f;
-        // rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.mass = 0.1f;
+        rb.drag = 0.2f;
+        rb.angularDrag = 1f;
 
-        GameObject marker = null;
-
-       
-        if (!bUseLineRenderer)
-        {
-            marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            marker.transform.SetParent(go.transform);
-            marker.transform.localPosition = Vector3.zero;
-            marker.transform.localScale = new Vector3(1, linkLength, 1);
-            //marker.GetComponent<MeshRenderer>().material.color = Color.yellow;
-            if (material != null)
-                marker.GetComponent<MeshRenderer>().material = material;
-            else
-                marker.GetComponent<MeshRenderer>().material.color = Color.yellow;
-
-            marker.GetComponent<CapsuleCollider>().height = linkLength * 0.8f;
-        }
-        else
-        {
-            //{ chain link colliders
-            var bc = go.AddComponent<BoxCollider>();
-            bc.center = Vector3.zero;
-            bc.size = new Vector3(1, linkLength * 0.9f, 1);
-
-            //var bc = go.AddComponent<CapsuleCollider>();
-            //bc.center = Vector3.zero;
-            //bc.radius = 0.2f;
-            //bc.height = linkLength * 0.3f;
-            //}
-        }
-        //}
-
-        go.layer = LayerMask.NameToLayer("Rope");
-
-        joint = go.AddComponent<HingeJoint>();
-
-        if (prev == null && bEndLink) // start
-        {
-            joint.anchor = new Vector3(0, 0, 0);
-        }
-        else
-        {
-            joint.anchor = new Vector3(0, linkLength, 0);
-            joint.connectedBody = prev.rb;
-
-            joint.useSpring = true;
-            joint.spring = new JointSpring { spring = spring, damper = damper };
-        }
-
-        // set end marker
-        if(next==null && bEndLink)
-        {
-            if (bUseLineRenderer)
-            {
-                marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                marker.transform.SetParent(go.transform);
-                marker.transform.localPosition = Vector3.zero;
-                marker.transform.localScale = new Vector3(1, linkLength, 1);
-            }
-           
-            marker.GetComponent<MeshRenderer>().material.color = Color.red;
-
-            go.tag = "RopeTail";
-            
-
-            //{ attach weight lifting hinge joint  // Creates problem - flickering wihtou weight
-
-            //tailJoint = go.AddComponent<HingeJoint>();
-            //tailJoint.anchor = new Vector3(0, linkLength, 0);
-            //tailJoint.useSpring = true;
-            //tailJoint.spring = new JointSpring { spring = spring, damper = damper };
-            //}
-        }
-
-        joint.axis = new Vector3(0, 1, 0);
+        var bc = go.AddComponent<BoxCollider>();
+        bc.center = Vector3.zero;
+        float size = Vector3.Distance(points[0], points[1]);
+        bc.size = new Vector3(1, size * 0.9f, 1);
     }
-
-    public void AttachTailJoint()
-    {
-        if (next != null && bEndLink == false)
-            return;
-
-        tailJoint = go.AddComponent<HingeJoint>();
-        tailJoint.anchor = new Vector3(0, linkLength, 0);
-        tailJoint.useSpring = true;
-        tailJoint.spring = new JointSpring { spring = spring, damper = damper };
-    }
-
-    public void UpdatePhysics()
-    {
-        float d = damper * 100;
-        if (d <= 0.01f) d = 0.1f;
-        if (d > 90000f)  d = 90000f;
-
-        rb.drag = d;
-        rb.angularDrag = 100;
-        joint.spring = new JointSpring { spring = d, damper = d };
-
-        // Debug.Log("Link vel: " + rb.velocity + " Angular: " + rb.angularVelocity);
-    }
-
-    //public void DisablePhysics()
-    //{
-    //   // rb.Sleep();
-    //}
-
-    //public void EnablePhysics()
-    //{
-    //   // go.SetActive(true);
-    //  //  rb.WakeUp();
-    //}
 }
 
 public class Rope : MonoBehaviour
 {
-    public float movementSpeed = 1f;
-    public Transform topAnchorPt;
     public Rigidbody topAnchorPtRB;
+    public Rigidbody bottomAnchorPtRB; // weigth joint pos
+ 
 
+    public Vector3 ropeCreationDirection = Vector3.down;
     public float length;
-    public int links;
-    public RopeLink ropeHead = null;
-    public RopeLink movementHead = null;
-    public RopeLink ropeTailEnd = null;
     public float linkLength;
+    public RopeLink ropeHead = null;
+    public RopeLink ropeTailEnd = null;
+  //  public HingeJoint ropeTailJoint;
 
     LineRenderer lr;
     public float linkDispSize = 1.0f;
-    public float spring = 2f;
-    public float damper = 1f;
+    public float spring = 0.2f;
+    public float damper = 0.2f;
+
+    public float currentDamper = 1f;
+    Coroutine crDamper;
 
     public Material material;
     public bool bUseLineRenderer;
 
     public GameObject goLinks;
-    public Vector3 ropeCreationDirection;
+    List<RopeLink> links = new List<RopeLink>();
+    public int nLinks;
+    public LayerMask layer;
 
-    public void Start()
+    public bool bValid = false;
+
+   // GameObject debugSphere;
+
+    public void OnDisable()
     {
-       
+       // DestroyLocalObjects();
+        //Debug.Log("Rope : OnDisable");
+    }
+
+    public void OnDestroy()
+    {
+       // Debug.Log("Rope : OnDestroy");
+    }
+
+    void DestroyLocalObjects()
+    {
+        bValid = false;
+        lr.positionCount = 0;
+        Destroy(lr); lr = null;
+
+        if (crDamper != null) StopCoroutine(crDamper);
+
+        var fjs = topAnchorPtRB.gameObject.GetComponents<FixedJoint>();
+        foreach (FixedJoint joint in fjs)
+        {
+            joint.connectedBody = null;
+            Destroy(joint);
+        }
+        topAnchorPtRB = null;
+
+        foreach (var lnk in links)
+        {
+            Destroy(lnk.joint); lnk.joint = null;
+            lnk.rb = null;
+            lnk.go = null;
+        }
+
+        links = null;
+        
+        bottomAnchorPtRB = null;
+        ropeHead = null;
+        ropeTailEnd = null;
+
+      //  Destroy(debugSphere);
     }
 
     public void Init()
     {
+        //debugSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        //debugSphere.GetComponent<Renderer>().material.color = Color.cyan;
+        //Destroy(debugSphere.GetComponent<SphereCollider>());
+        //debugSphere.transform.localScale = Vector3.one * 3f;
+        //debugSphere.SetActive(false);
+
+        var lm = LayerMask.NameToLayer("Rope");
+
         lr = GetComponent<LineRenderer>();
         lr.startWidth = lr.endWidth = linkDispSize;
         lr.positionCount = 0;
 
         goLinks = new GameObject("LINKS");
+        goLinks.layer = lm;
         goLinks.transform.SetParent(this.transform);
 
-        topAnchorPt = this.transform;
-        Generate(topAnchorPt, ropeCreationDirection, length, linkLength);
+        if ( bottomAnchorPtRB != null )
+        {
+            length = Vector3.Distance(topAnchorPtRB.transform.position, bottomAnchorPtRB.transform.position) ;
+        }
+        
+        nLinks = ((int)(length / linkLength)) + 1;
 
-        AttachPhysics();
+        Generate();
+
+        AttachJoints();
+
+        bValid = true;
     }
 
-    public RopeLink Generate(Transform topAnchorPt, Vector3 dir, float length, float linkLength=1.0f)
+    public void Generate()
     {
-        this.topAnchorPt = topAnchorPt;
-        this.linkLength = linkLength;
+        if (nLinks <= 0)
+            return ;
 
-        links = ((int)(length / linkLength));
-        if (links <= 0)
-            return null;
-
-        this.length = links * linkLength;
-
+        Vector3 dir = ropeCreationDirection;
         dir = dir.normalized * linkLength;
 
-        RopeLink prevLink = null;
-        ropeHead = null;
+        Vector3 prev = topAnchorPtRB.transform.position;
+        Vector3 next;
 
-        Vector3 prev = topAnchorPt.position;
-        Vector3 next = prev + dir;
-
-        ropeHead = new RopeLink(prev, next);
-        ropeHead.linkLength = linkLength;
-        ropeHead.bEndLink = true;
-        prev = next;
-        prevLink = ropeHead;
-        ropeHead.rope = this;
-
-
-        for (int i = 1; i < links ; i++)
+        for (int i = 0; i < nLinks; i++)
         {
             next = prev + dir;
 
-            RopeLink newLink = new RopeLink(prev, next, prevLink);
-            newLink.linkLength = linkLength;
-            newLink.rope = this;
+            RopeLink newLink = new RopeLink(prev, next);
+            links.Add(newLink);
+            newLink.go.name = i.ToString();
+            newLink.go.transform.SetParent(goLinks.transform);
 
             prev = next;
-            prevLink = newLink;
         }
 
-        if (prevLink != null)
-        {
-            prevLink.bEndLink = true;
-            ropeTailEnd = prevLink;
-        }
-
-        movementHead = ropeHead;
-        return ropeHead;
+        ropeHead = links[0];
+        ropeTailEnd = links[nLinks-1];
     }
 
-    public void AttachPhysics()
+    void CreateHingeJoint(RopeLink lnk, Rigidbody anchorRB)
     {
-        int i = 1;
-        RopeLink lnk = ropeHead;
-        while(lnk != null)
-        {
-            lnk.bUseLineRenderer = bUseLineRenderer;
-            lnk.material = material;
-            lnk.AttachPhysics();
+        HingeJoint joint = lnk.go.AddComponent<HingeJoint>();
+        lnk.joint = joint;
+        joint.connectedBody = anchorRB;
 
-            lnk.go.name = i.ToString();
-            i++;
-            lnk = lnk.next;
-        }
-
-        ropeHead.joint.connectedBody = topAnchorPtRB;
+        joint.useSpring = true;
+        joint.spring = new JointSpring { spring = this.spring, damper = this.damper };
     }
 
-    //public void FixedUpdate()
-    //{
-    //    float maxVelocity = 0.5f;
+    public void AttachJoints()
+    {
+        CreateHingeJoint(ropeHead, topAnchorPtRB);
 
-       
-    //    RopeLink lnk = ropeHead;
-    //    while (lnk != null)
-    //    {
-    //        if( lnk.rb.velocity.magnitude > maxVelocity )
-    //        {
-    //            lnk.rb.drag = 99999;
-    //            //lnk.rb.velocity = Vector3.zero;
-    //            lnk.rb.AddForce(-lnk.rb.velocity);
-    //            //lnk.rb.Sleep();
-    //            // lnk.rb.velocity = Vector3.ClampMagnitude(lnk.rb.velocity, maxVelocity);
+        for (int i = 1; i < nLinks; i++)
+        {
+            CreateHingeJoint(links[i], links[i-1].rb);            
+        }
 
-    //            //Debug.Log("Rope Top Anchor vel: " + lnk.rb.velocity);
-    //        }
+        if( bottomAnchorPtRB != null )
+        {
+            var fjt = ropeTailEnd.go.AddComponent<FixedJoint>();
+            fjt.connectedBody = bottomAnchorPtRB;
+        }
+    }
 
-    //        //if( lnk.rb.angularVelocity.magnitude > 0.2f )
-    //        //{
-    //        //    lnk.rb.angularVelocity = Vector3.zero;
-    //        //   // lnk.rb.angularVelocity = Vector3.ClampMagnitude(lnk.rb.angularVelocity, 0.2f);
-    //        //}
+   
+
+    public void WeightDistribute(float linkWeight)
+    {
+        if (!bValid)
+            return;
+
+        if( crDamper == null)
+            crDamper = StartCoroutine(ActivateDamper());
+
+        //float tlw = linkWeight * nLinks;
+
+        foreach (var lnk in links)
+            lnk.rb.mass = linkWeight;
+
+    }
+
+    private void FixedUpdate()
+    {
+        if (!bValid)
+            return;
+
+        //float MaxVelocityChange = 5f;
+        //bool DampRopes = false;
+        //foreach (var lnk in links)
+        //{
+        //    if( lnk.rb.velocity.magnitude > MaxVelocityChange )
+        //    {
+        //        DampRopes = true;
+        //        break;
+        //    }
+        //}
+
+        //float d = 1;
+        //if (DampRopes)
+        //    d = 10000;
+
+        float s = spring;
+        if (currentDamper > 100f)
+            s = 76543;
+
+        foreach (var lnk in links)
+        {
+            lnk.rb.ResetCenterOfMass();
+
+            lnk.joint.spring = new JointSpring { spring = s, damper = currentDamper };
+            lnk.rb.drag = currentDamper;
+        }
+    }
 
 
-    //        lnk = lnk.next;
-    //    }
-
-    //}
+    public bool bDrawToMainLift = false;
 
     public void Update()
     {
-        if (bUseLineRenderer)
+        if (!bValid || lr == null)
+            return;
+
+        lr.positionCount = 0;
+
+        if (bDrawToMainLift)
         {
-            lr.positionCount = 0;
-            RopeLink lnk = movementHead;
+            Vector3 tpos = MainLiftController.Instance.GetTailEndPos();
+           
+           // Debug.DrawLine(topAnchorPtRB.position, tpos, Color.red);
 
-            while (lnk != null)
-            {
-                if (lnk.rb == null)
-                    break;
-
-                lnk.spring = spring;
-                lnk.damper = damper;
-                lnk.UpdatePhysics();
-
-                var pos = lnk.go.transform.position;
-                var dir = lnk.go.transform.up * (linkLength / 2.0f);
-                var pos1 = pos + dir;
-                var pos2 = pos - dir;
-
-                lr.SetPosition(lr.positionCount++, pos1);
-                lr.SetPosition(lr.positionCount++, pos2);
-
-                lnk = lnk.next;
-            }
+            lr.SetPosition(lr.positionCount++, tpos);
         }
-    }
 
+        lr.SetPosition(lr.positionCount++, topAnchorPtRB.position);
 
-    // Not used and not working - can not  snap the chain using spirng joint
-#if false
-    public void ResetRope()
-    {
-        movementHead = ropeHead;
-    }
-
-    public void LiftUp()
-    {
-       // Time.timeScale = 0f;
-        if (movementHead.next == null)
-            return;
-
-        UpdateMovementHeadPhysics();
-        movementHead = movementHead.next;
-        SetRopeAtAnchorPosition();
-        // Time.timeScale = 1f;
-
-        //test.gameObject.transform.position += Vector3.up;
-    }
-
-    public void LiftDown()
-    {
-        if (movementHead.prev == ropeHead)
-            return;
-
-        UpdateMovementHeadPhysics();
-        movementHead = movementHead.prev;
-        SetRopeAtAnchorPosition();
-
-        //test.gameObject.transform.position -= Vector3.up;
-    }
-
-    public void UpdateMovementHeadPhysics()
-    {
-        if (movementHead == null || movementHead.joint == null)
-            return;
-
-        movementHead.joint.connectedBody = null;
-        movementHead.DisablePhysics();
-       
-    }
-
-    public void SetRopeAtAnchorPosition()
-    {
-        if (movementHead == null)
-            return;
-
-       // movementHead.DisablePhysics();
-        //movementHead.go.transform.position = topAnchorPtRB.position;
-        movementHead.joint.connectedBody = topAnchorPtRB;
-        movementHead.EnablePhysics();
-        //StartCoroutine( LinkTransition());
-    }
-
-    IEnumerator LinkTransition()
-    {
-        Vector3 target = topAnchorPt.position;
-
-        while(true)
+        foreach (var lnk in links)
         {
-            yield return null;
-            Vector3 npos = target + topAnchorPt.up ;
-
-            topAnchorPtRB.Sleep();
-            topAnchorPt.position = new Vector3(npos.x, npos.y, npos.z);
-            topAnchorPtRB.WakeUp();
-
-            double d = Vector3.Distance(target, topAnchorPt.position);
-            Debug.Log("" + d);
-            if (d >= 0.9f)
-                break;
+            lr.SetPosition(lr.positionCount++, lnk.rb.position);
         }
+
+        Vector3 pos = ropeTailEnd.rb.position;
+        if (bottomAnchorPtRB != null)
+        {
+            pos = bottomAnchorPtRB.position;
+
+           // debugSphere.transform.position = pos;
+           // debugSphere.SetActive(true);
+        }
+        else
+            pos = ropeTailEnd.rb.position + (Vector3.down * (linkLength * 0.6f));
+        lr.SetPosition(lr.positionCount++, pos);
+    }
+
+    IEnumerator ActivateDamper()
+    {
+        currentDamper = 10000;
+        yield return new WaitForSeconds(1f);
+        currentDamper = damper;
         
+       // Debug.Log("Damper changed to : " + damper);
 
-
-        /*
-        RopeLink tmpLink = movementHead;
-        SpringJoint sj = tmpLink.go.AddComponent<SpringJoint>();
-
-        sj.spring = 1000;
-        sj.damper = 10f;
-        sj.connectedBody = topAnchorPtRB;
-        sj.autoConfigureConnectedAnchor = false;
-        sj.anchor = new Vector3(0, 0, 0);
-        sj.connectedAnchor = new Vector3(0, 1f, 0);
-
-        while(true)
-        {
-            yield return new WaitForEndOfFrame();
-
-            yield return new WaitForEndOfFrame();
-
-            //double d = Vector3.Distance(tmpLink.go.transform.position, topAnchorPt.position);
-            //if (d > 0.2f)
-            //    continue;
-            break;
-        }
-
-        Destroy(sj);
-        sj = null;
-        */
-        //Debug.Log(" Link Transition Ended");
+        StopCoroutine(crDamper); crDamper = null;
     }
-#endif 
+
 }

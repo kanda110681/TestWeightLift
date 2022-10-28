@@ -4,56 +4,58 @@ using UnityEngine;
 
 public class MassConfiguration : MonoBehaviour
 {
-    public float MaxMassLimit = 3000;
     public LoadType loadType;
     public float Mass;
     public List<Transform> contactPts = new List<Transform>();
-
     public List<Rigidbody> connectionRigidBodies = new List<Rigidbody>();
-
-    Rigidbody rb;
+    public Rigidbody rb;
 
     public void Awake()
     {
         Mass = 0;
+        WallDisplay.DisplayWeight(this.Mass.ToString() + " kg");
         rb = GetComponent<Rigidbody>();
         rb.useGravity = true;
         rb.isKinematic = false;
     }
 
+    public void MassReset()
+    {
+        this.Mass = 1;
+        WallDisplay.DisplayWeight(this.Mass.ToString() + " kg");
+        if (rb == null)
+            return;
+
+        rb.transform.position = Vector3.zero;
+
+       // DestroyImmediate(rb);
+
+       
+       // Debug.Log(" Mass reset : ");
+
+       // rb.Sleep();
+        rb.mass = 0.5f;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.angularDrag = 0.1f;
+       // rb.WakeUp();
+
+       // Debug.Log("Mass reset Pos: " + rb.transform.position + " Vel: " + rb.velocity);
+    }
+
+    //private void Update()
+    //{
+    //   // Debug.Log("Pos: " + rb.transform.position + " Vel: " + rb.velocity);
+    //}
+
     public void UpdateMass(float Mass)
     {
-        if( this.Mass+Mass > MaxMassLimit)
-        {
-            WallDisplay.Display("Max weight limit " + MaxMassLimit);
-            return;
-        }
-        else if ( (this.Mass + Mass) < 1)
-        {
-
-            WallDisplay.Display("Weight is below 1 kg");
-            return;
-        }
-
         this.Mass += Mass;
+        if (this.Mass < 1)
+            this.Mass = 1;
+
         rb.mass = this.Mass;
-
         WallDisplay.DisplayWeight(this.Mass.ToString()+" kg");
-
-        //float s = Mass / 200;
-        //float y = 1;
-        //if (s < 1)
-        //    s = 1f;
-        //else if (s > 50)
-        //    s = 50f;
-
-        //if (s > 1)
-        //    y = y + (s / 3.0f);
-
-        //if( y > 20 ) y = 20;
-
-        //transform.localScale = new Vector3(s, y, s);
-        //transform.position = new Vector3(transform.position.x, transform.position.y + 30, transform.position.z);
     }
 
     public List<Rigidbody> PrepareWeightConfigurationConnections(int nRopes)
@@ -137,22 +139,32 @@ public class MassConfiguration : MonoBehaviour
         else
             return null;
 
-        foreach(var c in contacts)
+        connectionRigidBodies.Clear();
+        foreach (var c in contacts)
         {
             var t = contactPts[c];
 
-            var arb = t.gameObject.AddComponent<Rigidbody>();
-            arb.useGravity = true;
-            arb.mass = 0.3f;
+            var arb = t.gameObject.GetComponent<Rigidbody>();
 
-            var fjt = t.gameObject.AddComponent<FixedJoint>();
-            fjt.connectedBody = rb;
-            fjt.anchor = Vector3.zero;
-            fjt.axis = Vector3.up;
+            //var arb = t.gameObject.AddComponent<Rigidbody>();
+            //arb.useGravity = true;
+            //arb.mass = 0.3f;
+
+            //var fjt = t.gameObject.AddComponent<FixedJoint>();
+            //fjt.connectedBody = rb;
+            //fjt.anchor = Vector3.zero;
+            //fjt.axis = Vector3.up;
 
             connectionRigidBodies.Add(arb);
         }
 
         return connectionRigidBodies;
+    }
+
+
+    public float ExtraForce = 0.1f;
+    private void Update()
+    {
+        rb.AddForce(Vector3.down * ExtraForce);
     }
 }

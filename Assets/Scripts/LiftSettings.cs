@@ -33,6 +33,7 @@ public class LiftSettings : ScriptableObject
     public UnityAction cbDown;
     public UnityAction cbAddMass;
     public UnityAction cbSlingElasticityModified;
+    public UnityAction cbMassTypeChanged;
 
     public float ElasticityScaleFactor = 0.5f;
     public float chainDispSize = 0.3f;
@@ -40,7 +41,7 @@ public class LiftSettings : ScriptableObject
     public GameObject prefabAddMass;
 
     public float MAX_SPRING = 50000;
-    public float spring = 1; // actual spring
+   // public float spring = 1; // actual spring
     public float Damper = 1f;
 
     public bool bLiftUPOperatable = true;
@@ -69,8 +70,8 @@ public class LiftSettings : ScriptableObject
         cbAddMass?.Invoke();
     }
 
-    public void LiftReset()
-    {
-        spring = 1;
-    }
+    //public void LiftReset()
+    //{
+    //    spring = 1;
+    //}
 }

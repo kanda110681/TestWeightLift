@@ -49,9 +49,13 @@ MonoBehaviour:
   ls: {fileID: 11400000, guid: 5f965aff46aebf740ae8a609b22cb220, type: 2}
   ropes:
   - {fileID: 219036551018361332}
+  wm: {fileID: 0}
   AnchorPtTransform: {fileID: 0}
   AnchorAwayDist: 0
   HeightDist: 0
+  TopHeightDist: 68
+  TopHeightLimitThreshold: 5
+  BottomHeightLimitThreshold: 41
   AnchorAwayDistUPLimit: -40
   AnchorAwayDistDownLimit: -5
   bRopesReady: 0
@@ -72,7 +76,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4633974918103775001, guid: 925f1ed3cd65bd04c9a6c77550bba3bb, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 88
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4633974918103775001, guid: 925f1ed3cd65bd04c9a6c77550bba3bb, type: 3}
       propertyPath: m_LocalPosition.z

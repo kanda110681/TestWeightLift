@@ -13,7 +13,15 @@ public class LiftUISettings : MonoBehaviour
     private void Awake()
     {
         ls.LType = LoadType.LT_CUBE;
-        
+        ls.nSelectedLift = -1;
+        ls.ElasticityScaleFactor = 10f;
+        ls.Damper = 0;
+        ls.Weight = 5f;
+        ls.SlingElasticity = 10f;
+        ls.chainDispSize = 1f;
+        ls.bLiftUPOperatable = false;
+        ls.bLiftDownOperatable = false;
+    
         ls.cbSlingElasticityModified += SlingElasticityModified;
     }
 
@@ -57,8 +65,14 @@ public class LiftUISettings : MonoBehaviour
 
     public void UpdateMassGeomType(int type)
     {
-        if (ls) ls.LType = (LoadType)type;
-      //  Debug.Log("type: " + ls.LType);
+       // WallDisplay.DisplayUnderProgress();
+
+        if (ls)
+        {
+            ls.LType = (LoadType)type;
+            ls.cbMassTypeChanged?.Invoke();
+            //  Debug.Log("type: " + ls.LType);
+        }
     }
 
     public void UpdateDamper(float d)
