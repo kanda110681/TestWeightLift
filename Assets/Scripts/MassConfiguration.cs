@@ -164,9 +164,9 @@ public class MassConfiguration : MonoBehaviour
     }
 
 
-    public float ExtraForce = 0.1f;
-    private void Update()
-    {
-        rb.AddForce(Vector3.down * ExtraForce);
-    }
+    //public float ExtraForce = 0.1f;
+    //private void Update()
+    //{
+    //    rb.AddForce(Vector3.down * ExtraForce);
+    //}
 }

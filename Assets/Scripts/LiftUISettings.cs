@@ -14,7 +14,6 @@ public class LiftUISettings : MonoBehaviour
     {
         ls.LType = LoadType.LT_CUBE;
         ls.nSelectedLift = -1;
-        ls.ElasticityScaleFactor = 10f;
         ls.Damper = 0;
         ls.Weight = 5f;
         ls.SlingElasticity = 10f;

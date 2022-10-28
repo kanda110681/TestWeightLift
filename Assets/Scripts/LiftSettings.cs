@@ -35,7 +35,7 @@ public class LiftSettings : ScriptableObject
     public UnityAction cbSlingElasticityModified;
     public UnityAction cbMassTypeChanged;
 
-    public float ElasticityScaleFactor = 0.5f;
+   // public float ElasticityScaleFactor = 0.5f;
     public float chainDispSize = 0.3f;
 
    // public GameObject prefabAddMass;

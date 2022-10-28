@@ -48,7 +48,7 @@ public class WeightManager : MonoBehaviour
 
         mc.gameObject.SetActive(true);
 
-        mc.MassReset();
+       // mc.MassReset();
 
         
         if (wt == 2)
