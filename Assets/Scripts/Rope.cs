@@ -44,7 +44,6 @@ public class Rope : MonoBehaviour
     public Rigidbody topAnchorPtRB;
     public Rigidbody bottomAnchorPtRB; // weigth joint pos
  
-
     public Vector3 ropeCreationDirection = Vector3.down;
     public float length;
     public float linkLength;
@@ -70,50 +69,7 @@ public class Rope : MonoBehaviour
 
     public bool bValid = false;
 
-   // GameObject debugSphere;
-
-    public void OnDisable()
-    {
-       // DestroyLocalObjects();
-        //Debug.Log("Rope : OnDisable");
-    }
-
-    public void OnDestroy()
-    {
-       // Debug.Log("Rope : OnDestroy");
-    }
-
-    void DestroyLocalObjects()
-    {
-        bValid = false;
-        lr.positionCount = 0;
-        Destroy(lr); lr = null;
-
-        if (crDamper != null) StopCoroutine(crDamper);
-
-        var fjs = topAnchorPtRB.gameObject.GetComponents<FixedJoint>();
-        foreach (FixedJoint joint in fjs)
-        {
-            joint.connectedBody = null;
-            Destroy(joint);
-        }
-        topAnchorPtRB = null;
-
-        foreach (var lnk in links)
-        {
-            Destroy(lnk.joint); lnk.joint = null;
-            lnk.rb = null;
-            lnk.go = null;
-        }
-
-        links = null;
-        
-        bottomAnchorPtRB = null;
-        ropeHead = null;
-        ropeTailEnd = null;
-
-      //  Destroy(debugSphere);
-    }
+   
 
     public void Init()
     {

@@ -38,7 +38,7 @@ public class LiftSettings : ScriptableObject
     public float ElasticityScaleFactor = 0.5f;
     public float chainDispSize = 0.3f;
 
-    public GameObject prefabAddMass;
+   // public GameObject prefabAddMass;
 
     public float MAX_SPRING = 50000;
    // public float spring = 1; // actual spring
@@ -69,6 +69,15 @@ public class LiftSettings : ScriptableObject
     {
         cbAddMass?.Invoke();
     }
+
+    //IEnumerator ContinousWeightAddtion(float weight)
+    //{
+    //    do
+    //    {
+           
+    //        yield return new WaitForSeconds(0.2f);
+    //    } while (weight > 0.0001f);
+    //}
 
     //public void LiftReset()
     //{

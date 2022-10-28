@@ -30,10 +30,10 @@ public class WeightManager : MonoBehaviour
         ActivateMass(0);
     }
 
-    //void MassTypeChanged()
-    //{
-    //    ActivateMass((int)ls.LType);
-    //}
+    private void OnDisable()
+    {
+        ls.cbAddMass -= AddMass;
+    }
 
     void ActivateMass(int wt)
     {
@@ -70,7 +70,13 @@ public class WeightManager : MonoBehaviour
 
         if (ls.Weight == 0)
         {
-            WallDisplay.Display("minimium 1 kg");
+            WallDisplay.Display("Minimium 1 kg");
+            return;
+        }
+
+        if(ls.Weight > 500)
+        {
+            WallDisplay.Display("Add Limit 500 kg");
             return;
         }
 

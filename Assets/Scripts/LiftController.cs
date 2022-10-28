@@ -34,6 +34,7 @@ public class LiftController : MonoBehaviour
 
     public void OnDisable()
     {
+        ls.cbAddMass -= AddMass;
         SetInvalidLift();
     }
 
@@ -152,11 +153,22 @@ public class LiftController : MonoBehaviour
         float ropeWD = mass / (float)ropes.Count;
         if (ropeWD <= ropes.Count) ropeWD = ropes.Count;
 
+        //bool IncreaseRopeStiffness = false;
+        //if (Mathf.Abs(ls.Weight) > 10)
+        //{
+        //    IncreaseRopeStiffness = true;
+        //    StartCoroutine(IncreaseStiffness());
+        //}
+
         foreach (Rope rope in ropes)
         {
             float lnkWD = ropeWD / (float)rope.nLinks;
             if (lnkWD <= 0.05) lnkWD = 0.05f;
+
             rope.WeightDistribute(lnkWD);
+
+            //if (IncreaseRopeStiffness) 
+            //    continue;
 
             if (lnkWD < 1)
             {
@@ -169,6 +181,23 @@ public class LiftController : MonoBehaviour
                 rope.damper = 0.2f;
             }
            // Debug.Log("Weight Dist: " + mass + " RopeWD: " + ropeWD + " LinkWD: " + lnkWD);
+        }
+    }
+
+    IEnumerator IncreaseStiffness()
+    {
+        foreach (Rope rope in ropes)
+        {
+            rope.spring = 50000f;
+            rope.damper = 50000f;
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        foreach (Rope rope in ropes)
+        {
+            rope.spring = ls.ElasticityScaleFactor;
+            rope.damper = ls.Damper;
         }
     }
 

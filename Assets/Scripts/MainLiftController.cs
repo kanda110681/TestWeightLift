@@ -42,6 +42,11 @@ public class MainLiftController : MonoBehaviour
         liftSelector.cbResetRequired = LiftReset;
     }
 
+    private void OnDisable()
+    {
+        ls.cbUp -= LiftUP;
+        ls.cbDown -= LiftDown;
+    }
 
     // Start is called before the first frame update
     void Start()

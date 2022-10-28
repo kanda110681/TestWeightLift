@@ -10164,8 +10164,8 @@ MonoBehaviour:
   - {fileID: 1581277857}
   - {fileID: 1723157041}
   LiftMaxWeightLimits:
+  - 500
   - 1000
-  - 2000
   - 3000
-  - 3000
+  - 2500
   currentWeightConfiguration: -1
