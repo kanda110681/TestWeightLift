@@ -6,7 +6,11 @@ public class WeightManager : MonoBehaviour
 {
     public Transform topAnchorPt;
     public LiftSettings ls;
-    public List<MassConfiguration> weightGOs = new List<MassConfiguration>();
+    // public List<MassConfiguration> weightGOs = new List<MassConfiguration>();
+    
+    public List<GameObject> weightGOs = new List<GameObject>();
+    GameObject currentWeightGO;
+
 
     public List<float> LiftMaxWeightLimits = new List<float>();
 
@@ -37,14 +41,24 @@ public class WeightManager : MonoBehaviour
 
     void ActivateMass(int wt)
     {
-        foreach(MassConfiguration config in weightGOs)
+        if(currentWeightGO != null)
         {
-            config.MassReset();
-            config.gameObject.SetActive(false);
+            DestroyImmediate(currentWeightGO);
+            currentWeightGO = null;
+            mc = null;
         }
 
+        //foreach(MassConfiguration config in weightGOs)
+        //{
+        //    config.MassReset();
+        //    config.gameObject.SetActive(false);
+        //}
+
         currentWeightConfiguration = wt;
-        mc = weightGOs[wt];
+
+        currentWeightGO = Instantiate(weightGOs[currentWeightConfiguration]);
+        mc = currentWeightGO.GetComponent<MassConfiguration>();
+        //mc = weightGOs[wt];
 
         mc.gameObject.SetActive(true);
 
@@ -61,6 +75,9 @@ public class WeightManager : MonoBehaviour
 
     public float CurrentWeight()
     {
+        if (mc == null)
+            return 0;
+
         return mc.Mass;
     }
 

@@ -66,6 +66,18 @@ public class MainLiftController : MonoBehaviour
         //else if (Input.GetKey(KeyCode.DownArrow))
         //    LiftDown();
         //}test
+
+        var lc = liftSelector.GetCurrentLiftConotroller();
+        if (lc == null)
+            return;
+
+        float spring = ls.SlingElasticity;
+        float damper = ls.Damper;
+        foreach (var rope in lc.ropes)
+        {
+            rope.spring = spring;
+            rope.damper = damper;
+        }
     }
 
     GameObject CreateGO(string name, Transform parent, out Rigidbody rb)
@@ -191,12 +203,6 @@ public class MainLiftController : MonoBehaviour
             fjt.connectedBody = mainRope.ropeTailEnd.rb;
         }
 
-        //if( lc.ropes.Count == 2 ) // test
-        //{
-        //    var fjt = lc.ropes[0].gameObject.AddComponent<FixedJoint>();
-        //    fjt.connectedBody = lc.ropes[1].topAnchorPtRB;
-        //}
-
         foreach (var rope in lc.ropes)
         {
             var rb = rope.gameObject.GetComponent<Rigidbody>();
@@ -225,7 +231,7 @@ public class MainLiftController : MonoBehaviour
         }
 
         mainLiftGO.transform.position += (Vector3.up * speed);
-        UpdateRopeLinkPhysics(1);
+       // UpdateRopeLinkPhysics(1);
     }
 
     public void LiftDown()
@@ -241,7 +247,7 @@ public class MainLiftController : MonoBehaviour
         }
                 
         mainLiftGO.transform.position -= (Vector3.up * speed);
-        UpdateRopeLinkPhysics(-1);
+       // UpdateRopeLinkPhysics(-1);
     }
 
     void UpdateRopeLinkPhysics(int move)
@@ -259,13 +265,13 @@ public class MainLiftController : MonoBehaviour
         float spring = ls.SlingElasticity;
         float damper = ls.Damper;
 
-       // Debug.Log($"Weight-0: {totalWeight} Ratio: {wr} Spring: {spring} Damper: {damper}");
-
+        // Debug.Log($"Weight-0: {totalWeight} Ratio: {wr} Spring: {spring} Damper: {damper}");
+#if false
         //if (move < 0)
         //{
         //    damper += 0.1f;
         //}
-       // else
+        // else
         if (damper < 1)
         {
             damper += (wr * 1000);
@@ -310,7 +316,7 @@ public class MainLiftController : MonoBehaviour
         damper = Mathf.Clamp(damper, 0.1f, 77777);
 
      //   Debug.Log($"Weight: {totalWeight} Ratio: {wr} Spring: {spring} Damper: {damper}");
-
+#endif 
         foreach (var rope in lc.ropes)
         {
             rope.spring = spring;

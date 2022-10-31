@@ -25,10 +25,10 @@ public class WeightCollisionHandler : MonoBehaviour
 
     private void Update()
     {
-        HeightFromGround = transform.position.y - ObjectHeight ;
+        //HeightFromGround = transform.position.y - ObjectHeight ;
 
-        float hr = 1.0f - ((LiftMaxHeight - HeightFromGround) / LiftMaxHeight);
-        float downForce =  hr * 9.8f * mc.Mass * FORCE_FACTOR;
+        //float hr = 1.0f - ((LiftMaxHeight - HeightFromGround) / LiftMaxHeight);
+        //float downForce =  hr * 9.8f * mc.Mass * FORCE_FACTOR;
 
         //if(bApplyHeightForce)
         //    mc.rb.AddForce(Vector3.down * downForce);

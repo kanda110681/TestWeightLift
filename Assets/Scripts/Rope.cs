@@ -32,10 +32,12 @@ public class RopeLink
         rb.drag = 0.2f;
         rb.angularDrag = 1f;
 
+        rb.freezeRotation = true;
+
         var bc = go.AddComponent<BoxCollider>();
         bc.center = Vector3.zero;
         float size = Vector3.Distance(points[0], points[1]);
-        bc.size = new Vector3(1, size * 0.9f, 1);
+        bc.size = new Vector3(1, size * 1f, 1);
     }
 }
 
@@ -49,7 +51,6 @@ public class Rope : MonoBehaviour
     public float linkLength;
     public RopeLink ropeHead = null;
     public RopeLink ropeTailEnd = null;
-  //  public HingeJoint ropeTailJoint;
 
     LineRenderer lr;
     public float linkDispSize = 1.0f;
@@ -160,6 +161,7 @@ public class Rope : MonoBehaviour
         {
             var fjt = ropeTailEnd.go.AddComponent<FixedJoint>();
             fjt.connectedBody = bottomAnchorPtRB;
+
         }
     }
 
@@ -185,10 +187,18 @@ public class Rope : MonoBehaviour
         if (!bValid)
             return;
 
-        if( crDamper == null)
-            crDamper = StartCoroutine(ActivateDamper());
+        //if( crDamper == null)
+        //    crDamper = StartCoroutine(ActivateDamper());
 
         //float tlw = linkWeight * nLinks;
+
+        
+
+       // Debug.Log("Rope: Link WD: " + linkWeight + "  Head: " + ropeHead.rb.mass + "  TopAnchor: " + topAnchorPtRB.mass);
+
+        ropeTailEnd.rb.mass = linkWeight*2;
+        ropeHead.rb.mass = linkWeight * 2;
+        topAnchorPtRB.mass = linkWeight * 10;
 
         foreach (var lnk in links)
             lnk.rb.mass = linkWeight;
@@ -216,8 +226,10 @@ public class Rope : MonoBehaviour
         //    d = 10000;
 
         float s = spring;
-        if (currentDamper > 100f)
-            s = 76543;
+        //if (currentDamper > 100f)
+        //   s = 76543;
+        currentDamper = damper;
+
 
         foreach (var lnk in links)
         {

@@ -159,33 +159,15 @@ public class LiftController : MonoBehaviour
         float ropeWD = mass / (float)ropes.Count;
         if (ropeWD <= ropes.Count) ropeWD = ropes.Count;
 
-        //bool IncreaseRopeStiffness = false;
-        //if (Mathf.Abs(ls.Weight) > 10)
-        //{
-        //    IncreaseRopeStiffness = true;
-        //    StartCoroutine(IncreaseStiffness());
-        //}
-
         foreach (Rope rope in ropes)
         {
             float lnkWD = ropeWD / (float)rope.nLinks;
+            lnkWD = lnkWD * 1.1f;
             if (lnkWD <= 0.05) lnkWD = 0.05f;
 
             rope.WeightDistribute(lnkWD);
 
-            //if (IncreaseRopeStiffness) 
-            //    continue;
-
-            if (lnkWD < 1)
-            {
-                rope.spring = 0;
-                rope.damper = 0.01f;
-            }
-            else
-            {
-                rope.spring = 0.5f;
-                rope.damper = 0.2f;
-            }
+           
            // Debug.Log("Weight Dist: " + mass + " RopeWD: " + ropeWD + " LinkWD: " + lnkWD);
         }
     }

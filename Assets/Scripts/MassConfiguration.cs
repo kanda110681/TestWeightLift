@@ -12,7 +12,7 @@ public class MassConfiguration : MonoBehaviour
 
     public void Awake()
     {
-        Mass = 0;
+        Mass = 1;
         WallDisplay.DisplayWeight(this.Mass.ToString() + " kg");
         rb = GetComponent<Rigidbody>();
         rb.useGravity = true;
@@ -34,7 +34,7 @@ public class MassConfiguration : MonoBehaviour
        // Debug.Log(" Mass reset : ");
 
        // rb.Sleep();
-        rb.mass = 0.5f;
+        rb.mass = 1f;
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         rb.angularDrag = 0.1f;
@@ -54,8 +54,28 @@ public class MassConfiguration : MonoBehaviour
         if (this.Mass < 1)
             this.Mass = 1;
 
+        DistributeWeightToLinks();
+
         rb.mass = this.Mass;
         WallDisplay.DisplayWeight(this.Mass.ToString()+" kg");
+    }
+
+    void DistributeWeightToLinks()
+    {
+        int nRopes = connectionRigidBodies.Count;
+        if (nRopes <= 0)
+            return;
+
+        float rwt = this.Mass / nRopes;
+        rwt = rwt * 1.0f;
+        if (rwt < 0.5f) rwt = 0.5f;
+
+       // Debug.Log("Link WD: " + rwt);
+
+        foreach(var c in connectionRigidBodies)
+        {
+            c.mass = rwt;
+        }
     }
 
     public List<Rigidbody> PrepareWeightConfigurationConnections(int nRopes)

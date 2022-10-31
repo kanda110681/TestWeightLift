@@ -221,7 +221,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &6703441753829247052
 MonoBehaviour:
@@ -244,6 +244,7 @@ MonoBehaviour:
   - {fileID: 6703441753084241098}
   - {fileID: 6703441753405567420}
   connectionRigidBodies: []
+  rb: {fileID: 0}
 --- !u!114 &7384032689001108161
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,6 +258,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ls: {fileID: 11400000, guid: 5f965aff46aebf740ae8a609b22cb220, type: 2}
+  GROUND: Floor
+  CEILING: Ceiling
+  HeightFromGround: 0
+  LiftMaxHeight: 65
 --- !u!138 &7317644211071278722
 FixedJoint:
   m_ObjectHideFlags: 0
