@@ -79,6 +79,7 @@ public class LiftSelector : MonoBehaviour
         wm.CheckAndDestroy(lift);
 
         currentLiftGO = new GameObject();
+        currentLiftGO.name = "Lift Rope Controller";
         var lc = currentLiftGO.AddComponent<LiftController>();
         lc.ls = ls;
         lc.wm = wm;

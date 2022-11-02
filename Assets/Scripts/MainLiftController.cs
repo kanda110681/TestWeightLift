@@ -104,6 +104,7 @@ public class MainLiftController : MonoBehaviour
     {
         var lm = LayerMask.NameToLayer("Rope");
         var go = new GameObject();
+        go.name = "Rope";
         go.layer = lm;
         go.transform.SetParent(transform);
         var lr = go.AddComponent<LineRenderer>();

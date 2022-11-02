@@ -53,10 +53,11 @@ public class LiftController : MonoBehaviour
             rope.bValid = false;
     }
 
-    public void AddRope()
+    public void AddRope(int rno)
     {
         var lm = LayerMask.NameToLayer("Rope");
         var go = new GameObject();
+        go.name = "Rope-" + rno.ToString();
         go.layer = lm;
         go.transform.SetParent(transform);
         var lr = go.AddComponent<LineRenderer>();
@@ -87,7 +88,7 @@ public class LiftController : MonoBehaviour
         ropes.Clear();
 
         for (int i = 0; i < nRopes; i++)
-            AddRope();
+            AddRope(i+1);
 
         this.ropeLength = ropeLength;
         this.ropeLinkLength = ropeLinkLength;
