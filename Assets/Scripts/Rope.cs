@@ -7,7 +7,7 @@ public class RopeLink
     public Vector3 []points = new Vector3[2];
     public GameObject go;
     public Rigidbody rb;
-    public HingeJoint joint;
+    public HingeJoint joint; // connects to previous link
 
     public RopeLink(Vector3 p1, Vector3 p2)
     {
@@ -43,8 +43,8 @@ public class RopeLink
 
 public class Rope : MonoBehaviour
 {
-    public Rigidbody topAnchorPtRB;
-    public Rigidbody bottomAnchorPtRB; // weigth joint pos
+    public Rigidbody topAnchorPtRB;  // main rope tail end or arbitary point
+    public Rigidbody bottomAnchorPtRB; // Load (Mass) connection joint pos 
  
     public Vector3 ropeCreationDirection = Vector3.down;
     public float length;
@@ -52,21 +52,19 @@ public class Rope : MonoBehaviour
     public RopeLink ropeHead = null;
     public RopeLink ropeTailEnd = null;
 
-    LineRenderer lr;
+    LineRenderer lr; 
     public float linkDispSize = 1.0f;
     public float spring = 0.2f;
     public float damper = 0.2f;
 
-    public float currentDamper = 1f;
-    Coroutine crDamper;
+    //public float currentDamper = 1f;
+    //Coroutine crDamper;
 
     public Material material;
-    public bool bUseLineRenderer;
 
-    public GameObject goLinks;
-    List<RopeLink> links = new List<RopeLink>();
+    public GameObject goLinks; // Links - header GO
+    List<RopeLink> links = new List<RopeLink>(); // child links
     public int nLinks;
-    public LayerMask layer;
 
     public bool bValid = false;
 
@@ -90,34 +88,33 @@ public class Rope : MonoBehaviour
         goLinks.layer = lm;
         goLinks.transform.SetParent(this.transform);
 
-        if ( bottomAnchorPtRB != null )
+        /* 
+         * If we know the bottom connecting rb - rope end will be that point and also tail can connected to that rb)
+         */
+        if ( bottomAnchorPtRB != null )  
         {
             length = Vector3.Distance(topAnchorPtRB.transform.position, bottomAnchorPtRB.transform.position) ;
         }
         
         nLinks = ((int)(length / linkLength)) + 1;
 
+        // link points generation
         Generate();
 
+        // physics joints attachment
         AttachJoints();
 
         bValid = true;
     }
 
-    private void OnDisable2()
-    {
-       // Debug.Log("Rope Destroyed");
-        DetachHeadJoint();
-        DetachTailJoint();
-    }
-
+    // link points generation
     public void Generate()
     {
         if (nLinks <= 0)
             return ;
 
         Vector3 dir = ropeCreationDirection;
-        dir = dir.normalized * linkLength;
+        dir = dir.normalized * linkLength; 
 
         Vector3 prev = topAnchorPtRB.transform.position;
         Vector3 next;
@@ -150,13 +147,18 @@ public class Rope : MonoBehaviour
 
     public void AttachJoints()
     {
+        // head link attacched to main rope rb
         CreateHingeJoint(ropeHead, topAnchorPtRB);
 
+
+        // link attached to previous link
         for (int i = 1; i < nLinks; i++)
         {
             CreateHingeJoint(links[i], links[i-1].rb);            
         }
 
+
+        // if we know the Load connection rb, we can attach to it.
         if( bottomAnchorPtRB != null )
         {
             var fjt = ropeTailEnd.go.AddComponent<FixedJoint>();
@@ -165,23 +167,7 @@ public class Rope : MonoBehaviour
         }
     }
 
-    public void DetachTailJoint()
-    {
-        var fjt = ropeTailEnd.go.AddComponent<FixedJoint>();
-        fjt.connectedBody = null;
-
-        Destroy(fjt);
-    }
-
-    public void DetachHeadJoint()
-    {
-        if (topAnchorPtRB == null)
-            return;
-        var fjt = topAnchorPtRB.gameObject.AddComponent<FixedJoint>();
-        fjt.connectedBody = null;
-        Destroy(fjt);
-    }
-
+    // Automatic weight distribute between links based on connected Load
     public void WeightDistribute(float linkWeight)
     {
         if (!bValid)
@@ -190,13 +176,10 @@ public class Rope : MonoBehaviour
         //if( crDamper == null)
         //    crDamper = StartCoroutine(ActivateDamper());
 
-        //float tlw = linkWeight * nLinks;
-
-        
-
        // Debug.Log("Rope: Link WD: " + linkWeight + "  Head: " + ropeHead.rb.mass + "  TopAnchor: " + topAnchorPtRB.mass);
 
-        ropeTailEnd.rb.mass = linkWeight*2;
+        // For safety increased the mass
+        ropeTailEnd.rb.mass = linkWeight*2; 
         ropeHead.rb.mass = linkWeight * 2;
         topAnchorPtRB.mass = linkWeight * 10;
 
@@ -205,6 +188,7 @@ public class Rope : MonoBehaviour
 
     }
 
+#if false
     private void FixedUpdate()
     {
         if (!bValid)
@@ -226,11 +210,7 @@ public class Rope : MonoBehaviour
         //    d = 10000;
 
         float s = spring;
-        //if (currentDamper > 100f)
-        //   s = 76543;
-        currentDamper = damper;
-
-
+        float currentDamper = damper;
         foreach (var lnk in links)
         {
             lnk.rb.ResetCenterOfMass();
@@ -239,10 +219,14 @@ public class Rope : MonoBehaviour
             lnk.rb.drag = currentDamper;
         }
     }
-
+#endif 
 
     public bool bDrawToMainLift = false;
 
+
+    /*
+     *  Line drawing for rope
+     */
     public void Update()
     {
         if (!bValid || lr == null)
@@ -250,7 +234,7 @@ public class Rope : MonoBehaviour
 
         lr.positionCount = 0;
 
-        if (bDrawToMainLift)
+        if (bDrawToMainLift) // fix - sometimes joint is displaced. slightly lower.
         {
             Vector3 tpos = MainLiftController.Instance.GetTailEndPos();
            
@@ -279,15 +263,15 @@ public class Rope : MonoBehaviour
         lr.SetPosition(lr.positionCount++, pos);
     }
 
-    IEnumerator ActivateDamper()
-    {
-        currentDamper = 10000;
-        yield return new WaitForSeconds(1f);
-        currentDamper = damper;
+    //IEnumerator ActivateDamper()
+    //{
+    //    currentDamper = 10000;
+    //    yield return new WaitForSeconds(1f);
+    //    currentDamper = damper;
         
-       // Debug.Log("Damper changed to : " + damper);
+    //   // Debug.Log("Damper changed to : " + damper);
 
-        StopCoroutine(crDamper); crDamper = null;
-    }
+    //    StopCoroutine(crDamper); crDamper = null;
+    //}
 
 }

@@ -23,6 +23,7 @@ public class WeightCollisionHandler : MonoBehaviour
         bApplyHeightForce = false;
     }
 
+#if false 
     private void Update()
     {
         //HeightFromGround = transform.position.y - ObjectHeight ;
@@ -36,6 +37,7 @@ public class WeightCollisionHandler : MonoBehaviour
 
      //  Debug.Log("Height: " + HeightFromGround + " DownForce: " + downForce + " Flag: "+ bApplyHeightForce);
     }
+#endif 
 
     public void OnCollisionEnter(Collision collision)
     {

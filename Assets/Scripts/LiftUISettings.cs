@@ -17,7 +17,6 @@ public class LiftUISettings : MonoBehaviour
         ls.Damper = 0;
         ls.Weight = 5f;
         ls.SlingElasticity = 10f;
-        ls.chainDispSize = 1f;
         ls.bLiftUPOperatable = false;
         ls.bLiftDownOperatable = false;
     

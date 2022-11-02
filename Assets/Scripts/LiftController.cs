@@ -4,26 +4,23 @@ using UnityEngine;
 
 public class LiftController : MonoBehaviour
 {
-    public float speed = 1f;
+    //{ Independent controller
+    // public float speed = 1f; 
+    //  public float TopHeightDistLimit = 68.0f;
+    //  public float BottomHeightDistLimit = 41f;
+    //}
+
     public LiftSettings ls;
-    public List<Rope> ropes = new List<Rope>();
     public WeightManager wm;
 
-    public Transform AnchorPtTransform;
-   
-    public float TopHeightDistLimit = 68.0f;
-    public float BottomHeightDistLimit = 41f;
+    public List<Rope> ropes = new List<Rope>();
+    public Transform AnchorPtTransform;  // Top Anchor pt
 
     public Material ropeMaterial;
     public bool bRopesReady = false;
 
     float ropeLength;
     float ropeLinkLength;
-
-    public void Awake()
-    {
-        
-    }
 
     public void Init()
     {
@@ -42,17 +39,19 @@ public class LiftController : MonoBehaviour
         ropes.Clear();
     }
 
-    public void OnDestroy()
-    {
-       
-    }
-
+    // ropes not valid - line renderings issues
     public void SetInvalidLift()
     {
         foreach (Rope rope in ropes)
             rope.bValid = false;
     }
 
+
+    /*
+     *  Create Rope Game Object 
+     *     LineRenderer, RigidBody and Rope component added
+     *  Note: rope not created or genereted at this time.
+     */
     public void AddRope(int rno)
     {
         var lm = LayerMask.NameToLayer("Rope");
@@ -67,32 +66,43 @@ public class LiftController : MonoBehaviour
         rrb.isKinematic = true;
         var rope = go.AddComponent<Rope>();
         rope.topAnchorPtRB = rrb;
-        rope.bUseLineRenderer = true;
 
         ropes.Add(rope);
     }
 
+    /*
+     *  Rope genereated based on direction and length
+     */
     public void InitRope(Rope rope, Vector3 direction)
     {
         rope.length = ropeLength;
         rope.linkLength = ropeLinkLength;
         rope.ropeCreationDirection = direction;
-        rope.Init();
+        rope.Init(); // rope generated
     }
 
+
+    /*
+     *  Newly setup 
+     *    - new ropes added
+     *    - load attached
+     */
     public void SetupRopes(int nRopes, float ropeLength, float ropeLinkLength, WeightManager wm)
     {
         if (nRopes <= 0 || wm == null)
             return;
+
+        this.ropeLength = ropeLength;
+        this.ropeLinkLength = ropeLinkLength;
 
         ropes.Clear();
 
         for (int i = 0; i < nRopes; i++)
             AddRope(i+1);
 
-        this.ropeLength = ropeLength;
-        this.ropeLinkLength = ropeLinkLength;
-
+        // Get Load information about ropes attachement.
+        // Each rope's tail end attached to designated attach point gentered from load types (box, pipe, disc)
+        // Each load type attachment varies based on ropes 
         var WeightRBs = wm.PrepareWeightConfigurationConnections(nRopes);
         for (int i = 0; i < nRopes; i++)
         {
@@ -107,7 +117,6 @@ public class LiftController : MonoBehaviour
             //}
             InitRope(ropes[i], dir.normalized);
         }
-
        
         bRopesReady = true;
     }
@@ -151,20 +160,23 @@ public class LiftController : MonoBehaviour
     }
 #endif  
   
+    /*
+     *  automatic weight distributed between ropes and links
+     */
     void AddMass()
     {
         if (ropes.Count <= 0)
             return;
 
         float mass = wm.CurrentWeight() + ls.Weight;
-        float ropeWD = mass / (float)ropes.Count;
+        float ropeWD = mass / (float)ropes.Count;  // Each Rope's weight distribution 
         if (ropeWD <= ropes.Count) ropeWD = ropes.Count;
 
         foreach (Rope rope in ropes)
         {
-            float lnkWD = ropeWD / (float)rope.nLinks;
-            lnkWD = lnkWD * 1.1f;
-            if (lnkWD <= 0.05) lnkWD = 0.05f;
+            float lnkWD = ropeWD / (float)rope.nLinks;  // Each rope links weight distribution
+            lnkWD = lnkWD * 1.1f; // for safety - to avoid flickering 
+            if (lnkWD <= 0.05) lnkWD = 0.05f; 
 
             rope.WeightDistribute(lnkWD);
 

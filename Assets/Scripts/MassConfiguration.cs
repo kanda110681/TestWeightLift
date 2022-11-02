@@ -19,6 +19,7 @@ public class MassConfiguration : MonoBehaviour
         rb.isKinematic = false;
     }
 
+#if false
     public void MassReset()
     {
         this.Mass = 1;
@@ -47,6 +48,7 @@ public class MassConfiguration : MonoBehaviour
     //{
     //   // Debug.Log("Pos: " + rb.transform.position + " Vel: " + rb.velocity);
     //}
+#endif 
 
     public void UpdateMass(float Mass)
     {
@@ -60,6 +62,10 @@ public class MassConfiguration : MonoBehaviour
         WallDisplay.DisplayWeight(this.Mass.ToString()+" kg");
     }
 
+    /*
+     *  Distribute the main weight to all child's rb based on rope configuration
+     *  All rope tail joint attached to this child rb
+     */
     void DistributeWeightToLinks()
     {
         int nRopes = connectionRigidBodies.Count;
@@ -67,7 +73,7 @@ public class MassConfiguration : MonoBehaviour
             return;
 
         float rwt = this.Mass / nRopes;
-        rwt = rwt * 1.0f;
+        rwt = rwt * 1.0f;  // to avoid flickering 
         if (rwt < 0.5f) rwt = 0.5f;
 
        // Debug.Log("Link WD: " + rwt);
@@ -78,6 +84,9 @@ public class MassConfiguration : MonoBehaviour
         }
     }
 
+    /*
+    *  Lift controller calls it - ropes tail end attached to this child rb
+    */
     public List<Rigidbody> PrepareWeightConfigurationConnections(int nRopes)
     {
         if (nRopes <= 0)
@@ -167,15 +176,6 @@ public class MassConfiguration : MonoBehaviour
             var t = contactPts[c];
 
             var arb = t.gameObject.GetComponent<Rigidbody>();
-
-            //var arb = t.gameObject.AddComponent<Rigidbody>();
-            //arb.useGravity = true;
-            //arb.mass = 0.3f;
-
-            //var fjt = t.gameObject.AddComponent<FixedJoint>();
-            //fjt.connectedBody = rb;
-            //fjt.anchor = Vector3.zero;
-            //fjt.axis = Vector3.up;
 
             connectionRigidBodies.Add(arb);
         }

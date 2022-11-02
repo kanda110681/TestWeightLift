@@ -4,14 +4,13 @@ using UnityEngine;
 
 public class WeightManager : MonoBehaviour
 {
-    public Transform topAnchorPt;
+    public Transform topAnchorPt;  // Reference for load placement on floor
     public LiftSettings ls;
-    // public List<MassConfiguration> weightGOs = new List<MassConfiguration>();
-    
-    public List<GameObject> weightGOs = new List<GameObject>();
+   
+    public List<GameObject> weightGOs = new List<GameObject>(); // prefab
     GameObject currentWeightGO;
 
-
+    // Max weight limit setup for all lift configuration
     public List<float> LiftMaxWeightLimits = new List<float>();
 
     public int currentWeightConfiguration = -1;
@@ -30,8 +29,13 @@ public class WeightManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(this.gameObject);
 
-        ls.cbAddMass += AddMass;
+       
         ActivateMass(0);
+    }
+
+    private void OnEnable()
+    {
+        ls.cbAddMass += AddMass;
     }
 
     private void OnDisable()
@@ -39,6 +43,11 @@ public class WeightManager : MonoBehaviour
         ls.cbAddMass -= AddMass;
     }
 
+
+    /*
+     * Always only one Load available
+     * Delete old one and create new one
+     */ 
     void ActivateMass(int wt)
     {
         if(currentWeightGO != null)
@@ -48,28 +57,18 @@ public class WeightManager : MonoBehaviour
             mc = null;
         }
 
-        //foreach(MassConfiguration config in weightGOs)
-        //{
-        //    config.MassReset();
-        //    config.gameObject.SetActive(false);
-        //}
-
         currentWeightConfiguration = wt;
 
         currentWeightGO = Instantiate(weightGOs[currentWeightConfiguration]);
         mc = currentWeightGO.GetComponent<MassConfiguration>();
-        //mc = weightGOs[wt];
-
         mc.gameObject.SetActive(true);
 
-       // mc.MassReset();
-
-        
-        if (wt == 2)
+        if (wt == 2) // pipe rotation
             mc.gameObject.transform.rotation = Quaternion.Euler(0, 0, 90f);
         else
             mc.gameObject.transform.rotation = Quaternion.identity;
 
+        // place load based on anchor pt - rope position
         mc.gameObject.transform.position = new Vector3(topAnchorPt.position.x, 3, topAnchorPt.position.z);
     }
 
@@ -114,6 +113,10 @@ public class WeightManager : MonoBehaviour
         ActivateMass((int)ls.LType);
     }
 
+
+    /*
+     *  Lift controller calls it - ropes tail end attached to this child rb
+     */
     public List<Rigidbody> PrepareWeightConfigurationConnections(int nRopes)
     {
         if (mc == null) return null;

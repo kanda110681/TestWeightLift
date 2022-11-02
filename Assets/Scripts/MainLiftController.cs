@@ -5,21 +5,25 @@ using UnityEngine;
 public class MainLiftController : MonoBehaviour
 {
     public Material ropeMaterial;
-    public Transform topAnchorPt;
-    public Transform bottomAnchorPt;
-    public LiftSettings ls;
+    public Transform topAnchorPt;     // main rope top anchor pt
+    public Transform bottomAnchorPt;  // main rope bottom pt - all ropes attached here
+    public LiftSettings ls; 
 
-    public float speed = 1f;
+    public float speed = 1f;  // lift up and down speed control 
+
+    // Up limit - main rope tail end position can not be greater than this
     public float TopHeightDistLimit = 68.0f;
+
+    // Down limit - main rope tail end position can not be less than this
     public float BottomHeightDistLimit = 20f;
 
+    // Ropes configuration (1 or 2 or 3 ... )
     LiftSelector liftSelector;
-
-    GameObject mainLiftGO;
-    Vector3 mainLiftResetPos;
+  
 
     public static MainLiftController Instance;
 
+    GameObject mainLiftGO;
     Rope mainRope;
     bool bReady = false;
 
@@ -34,12 +38,19 @@ public class MainLiftController : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
 
         liftSelector = GetComponent<LiftSelector>();
+        bReady = false;
+    }
+
+    private void OnEnable()
+    {
         ls.cbUp += LiftUP;
         ls.cbDown += LiftDown;
-        bReady = false;
 
-        liftSelector.cbNewLiftConfigured = NewLiftConfigured;
-        liftSelector.cbResetRequired = LiftReset;
+        if (liftSelector != null)
+        {
+            liftSelector.cbNewLiftConfigured += NewLiftConfigured;
+            liftSelector.cbResetRequired += LiftReset;
+        }
     }
 
     private void OnDisable()
@@ -47,11 +58,14 @@ public class MainLiftController : MonoBehaviour
         ls.cbUp -= LiftUP;
         ls.cbDown -= LiftDown;
 
-        if(liftSelector != null)
-             liftSelector.cbResetRequired -= LiftReset;
+        if (liftSelector != null)
+        {
+            liftSelector.cbNewLiftConfigured -= NewLiftConfigured;
+            liftSelector.cbResetRequired -= LiftReset;
+        }
     }
 
-    // Start is called before the first frame update
+    
     void Start()
     {
         SetupMainLift();
@@ -67,10 +81,16 @@ public class MainLiftController : MonoBehaviour
         //    LiftDown();
         //}test
 
+        /*
+         *  always check current lift controller obj before using it. Because it created dynamically. 
+         */
         var lc = liftSelector.GetCurrentLiftConotroller();
         if (lc == null)
             return;
 
+        /*
+         *  Set Joint's spring and damper values from UI. 
+         */
         float spring = ls.SlingElasticity;
         float damper = ls.Damper;
         foreach (var rope in lc.ropes)
@@ -114,7 +134,6 @@ public class MainLiftController : MonoBehaviour
         rrb.isKinematic = true;
         var rope = go.AddComponent<Rope>();
         rope.topAnchorPtRB = rrb;
-        rope.bUseLineRenderer = true;
 
         return go;
     }
@@ -124,27 +143,34 @@ public class MainLiftController : MonoBehaviour
         bReady = false;
 
         Rigidbody mainRB, topRB;
-        mainLiftGO = CreateGO("Main Lift", transform, out mainRB);
+        // Game objects creations - main lift and child object
+        mainLiftGO = CreateGO("Main Lift", transform, out mainRB);  
         var topGO = CreateGO("TopPt", mainLiftGO.transform, out topRB);
 
-        mainLiftResetPos = mainLiftGO.transform.position;
-
         topGO.transform.position = topAnchorPt.position;
+        // child obj attached to parent 
+        var topFJ = CreateFixedJoint(mainLiftGO, topRB); 
 
-        var topFJ = CreateFixedJoint(mainLiftGO, topRB);
-
-        //var ropeGO = Instantiate(ROPE, topAnchorPt);
-        var ropeGO = CreateRope();
+        // Main rope
+        var ropeGO = CreateRope(); 
         ropeGO.transform.SetParent(topGO.transform);
 
         mainRope = ropeGO.GetComponent<Rope>();
+        // main rope attached to top pt 
         mainRope.topAnchorPtRB = topRB;
         
         mainRope.ropeCreationDirection = Vector3.down;
         mainRope.length = Vector3.Distance(topAnchorPt.position, bottomAnchorPt.position) ;
-        mainRope.linkLength = 5f;
-        mainRope.Init();
 
+        // Its main rope - distance is too high, so used big chain length
+        mainRope.linkLength = 5f; 
+        mainRope.Init();  
+
+
+        /*
+         *   Marker: Centre of all ropes joints
+         *   Big sphere to hide joints - for aesthetic purposeo only
+         */
         float rad = 10;
         var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         marker.layer = LayerMask.NameToLayer("Safety");
@@ -162,6 +188,7 @@ public class MainLiftController : MonoBehaviour
         marker.GetComponent<Renderer>().material.color = Color.black;
         //
 
+        // Main rope links updated with big weight to hold all ropes and load types
         UpdateWeightForLinks(200);
     }
 
@@ -177,9 +204,12 @@ public class MainLiftController : MonoBehaviour
 
         mainRope.WeightDistribute(w);
     }
-
     
-
+    /*
+     *  New main lift created and destroyed old one 
+     *  called if any changes in ropes or load type configuration
+     *  Dependency: None (it can be called anytime)
+     */
     void LiftReset()
     {
         bReady = false;
@@ -190,6 +220,11 @@ public class MainLiftController : MonoBehaviour
         SetupMainLift();
     }
 
+    /*
+     *  Dependecy: It depends on the bottom ropes (if ropes changed and we need to reattached)
+     *  All ropes head attached to main ropes tail
+     *  Also make sure all ropes are NON-KINEMATIC and uses Gravity
+     */
     void NewLiftConfigured()
     {
         bReady = false;       
@@ -198,12 +233,15 @@ public class MainLiftController : MonoBehaviour
         if (lc == null)
             return;
 
+        // attach all ropes head to main rope tail
         foreach(var rope in lc.ropes)
         {
             var fjt = rope.topAnchorPtRB.gameObject.AddComponent<FixedJoint>();
             fjt.connectedBody = mainRope.ropeTailEnd.rb;
         }
 
+
+        // make it Non-Kinematic ropes - so that we can move 
         foreach (var rope in lc.ropes)
         {
             var rb = rope.gameObject.GetComponent<Rigidbody>();

@@ -13,9 +13,12 @@ public enum LoadType
 [CreateAssetMenu(menuName = "Create/LiftSettings")]
 public class LiftSettings : ScriptableObject
 {
-    float SpringElasticity = 10;
-    public int MAX_TIMES_WEIGH_ADD = 10;
+    // Joint - Damper 
+    public float Damper = 1f;
 
+
+    // Joint - Spring 
+    float SpringElasticity = 10;
     public float SlingElasticity
     {
         get { return SpringElasticity; }
@@ -26,28 +29,23 @@ public class LiftSettings : ScriptableObject
         }
     }
 
+    // Load weight and shape types
     public float Weight=5;
     public LoadType LType = LoadType.LT_CUBE;
 
+    // Observers - Callbacks
     public UnityAction cbUp;
     public UnityAction cbDown;
     public UnityAction cbAddMass;
     public UnityAction cbSlingElasticityModified;
     public UnityAction cbMassTypeChanged;
 
-   // public float ElasticityScaleFactor = 0.5f;
-    public float chainDispSize = 0.3f;
-
-   // public GameObject prefabAddMass;
-
-    public float MAX_SPRING = 50000;
-   // public float spring = 1; // actual spring
-    public float Damper = 1f;
-
+    // Lift controller - limitation set it from Load
     public bool bLiftUPOperatable = true;
     public bool bLiftDownOperatable = true;
-    public int nSelectedLift = -1; // current operating lift
-  //  public Transform topAnchorPt;
+
+    // current operating lift (Ropes)
+    public int nSelectedLift = -1; 
 
     public void LiftUP()
     {
@@ -69,18 +67,5 @@ public class LiftSettings : ScriptableObject
     {
         cbAddMass?.Invoke();
     }
-
-    //IEnumerator ContinousWeightAddtion(float weight)
-    //{
-    //    do
-    //    {
-           
-    //        yield return new WaitForSeconds(0.2f);
-    //    } while (weight > 0.0001f);
-    //}
-
-    //public void LiftReset()
-    //{
-    //    spring = 1;
-    //}
+      
 }

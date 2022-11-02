@@ -5,42 +5,63 @@ using UnityEngine.Events;
 
 public class LiftSelector : MonoBehaviour
 {
-    //  public List<GameObject> lifts = new List<GameObject>();
-    //LiftController liftContoller;
-    GameObject currentLiftGO;
+    int lift = -1; // current lift and rope configuration
+    GameObject currentLiftGO; 
     public Material ropeMaterial;
 
-    public int lift = -1;
+    
     public LiftSettings ls;
     public WeightManager wm;
 
     public float ropeLength = 70f;
     public float ropeLinkLength = 1f;
+   
+    public Transform AnchorPtTransform;  // rope head starting point
 
-    List<Rigidbody> connectionRigidBodies; 
+    // indepent movement
+    //public float TopHeightDistLimit = 68.0f;   
+    // public float BottomHeightDistLimit = 41f;
 
-    
-    public Transform AnchorPtTransform;
 
-    public float TopHeightDistLimit = 68.0f;
-    public float BottomHeightDistLimit = 41f;
-
-    public UnityAction cbNewLiftConfigured;
+    /*
+     * [BEFORE CALL] - New lift (ropes) going to be configured. Notify to others.
+     */
     public UnityAction cbResetRequired;
+
+    /*
+     *  [AFTER CALL] - all ropes and weight configured. Notify to others.
+     */
+    public UnityAction cbNewLiftConfigured;
+    
 
     public void Awake()
     {
         if(ls != null ) ls.nSelectedLift = -1;
-        ls.cbMassTypeChanged += MassTypeChanged;
         currentLiftGO = null;
     }
+
+    private void OnEnable()
+    {
+        ls.cbMassTypeChanged += MassTypeChanged;
+    }
+
+    private void OnDisable()
+    {
+        ls.cbMassTypeChanged -= MassTypeChanged;
+    }
+
     void MassTypeChanged()
     {
-        if (lift >= 0 && lift != 3)  // avoid 3 ropes
+        if (lift >= 0 && lift != 3)  // avoid 3 ropes // it does not configured it correctly - centre of gravity is not correct
             lift++; 
         OnLiftSelector(lift);
     }
 
+
+    /*
+     *  Directly linked to Canvas UI 
+     *  - Always create new lift controller for every change in ropes and load types
+     */
     public void OnLiftSelector(int type)
     {
         if(type != -1 )
@@ -62,7 +83,7 @@ public class LiftSelector : MonoBehaviour
         
         ls.nSelectedLift = lift;
 
-       
+        // Destroy existing go
         if(currentLiftGO != null)
         {
             var tmpLC = currentLiftGO.GetComponent<LiftController>();
@@ -76,31 +97,40 @@ public class LiftSelector : MonoBehaviour
         if (lift < 0)
             return;
 
+        // Destroy load and reconfigure load based on ropes 
         wm.CheckAndDestroy(lift);
 
+        // New object creation
         currentLiftGO = new GameObject();
         currentLiftGO.name = "Lift Rope Controller";
         var lc = currentLiftGO.AddComponent<LiftController>();
         lc.ls = ls;
         lc.wm = wm;
         lc.AnchorPtTransform = AnchorPtTransform;
-        lc.TopHeightDistLimit = TopHeightDistLimit;
-        lc.BottomHeightDistLimit = BottomHeightDistLimit;
+       // lc.TopHeightDistLimit = TopHeightDistLimit;
+       // lc.BottomHeightDistLimit = BottomHeightDistLimit;
         lc.ropeMaterial = ropeMaterial;
         lc.Init();
 
-        //lc.SetupRopes(type+1, ropeLength, ropeLinkLength, wm);
         StartCoroutine(SetupRopes());
     }
 
     IEnumerator SetupRopes()
     {
-        yield return new WaitForSeconds(0.1f);
+       // yield return new WaitForSeconds(0.1f);
 
-        cbResetRequired?.Invoke();
+        /*
+         *  Main lift controller - Reset - recreate top main rope 
+         */
+        cbResetRequired?.Invoke(); 
 
+        /*  Slight delay for main rope crteation
+         */
         yield return new WaitForSeconds(0.2f);
 
+        /*
+         * Setup bottom ropes based on lift types
+         */
         var lc = currentLiftGO.GetComponent<LiftController>();
 
         int r = lift + 1;
@@ -108,6 +138,9 @@ public class LiftSelector : MonoBehaviour
             r = 4;
         lc.SetupRopes(r, ropeLength, ropeLinkLength, wm);
 
+        /*
+         *  Inform to Main lift controller - ropes are ready to attached to main rope
+         */
         cbNewLiftConfigured?.Invoke();
     }
 
