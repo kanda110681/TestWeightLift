@@ -96,4 +96,38 @@ public class LiftUISettings : MonoBehaviour
     {
         if (ls) ls.LiftDown();
     }
+
+    bool bUpPressed = false;
+
+    public void OnPressedUp()
+    {
+        bUpPressed = true;
+    }
+
+    public void OnNotPressedUp()
+    {
+        bUpPressed = false;
+    }
+
+    bool bDownPressed = false;
+
+    public void OnPressedDown()
+    {
+        bDownPressed = true;
+    }
+
+    public void OnNotPressedDown()
+    {
+        bDownPressed = false;
+    }
+    private void Update()
+    {
+        if(bUpPressed)
+        {
+            LiftUP();
+        }
+
+        if (bDownPressed)
+            LiftDown();
+    }
 }

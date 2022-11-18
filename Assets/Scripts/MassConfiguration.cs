@@ -99,7 +99,7 @@ public class MassConfiguration : MonoBehaviour
             if (loadType == LoadType.LT_CUBE || loadType == LoadType.LT_DISC)
                 contacts.Add(4);
             else if (loadType == LoadType.LT_CYLINDER)
-                contacts.Add(2);
+                contacts.Add(0);
             else
                 return null;
 
@@ -108,8 +108,11 @@ public class MassConfiguration : MonoBehaviour
         {
             if (loadType == LoadType.LT_CUBE || loadType == LoadType.LT_DISC)
             {
-                contacts.Add(3);
-                contacts.Add(5);
+                //contacts.Add(3);
+                //contacts.Add(5);
+
+                contacts.Add(0);
+                contacts.Add(2);
             }
             else if (loadType == LoadType.LT_CYLINDER)
             {

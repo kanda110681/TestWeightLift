@@ -49,16 +49,16 @@ public class LiftSettings : ScriptableObject
 
     public void LiftUP()
     {
-        if (!bLiftUPOperatable)
-            return;
+        //if (!bLiftUPOperatable)
+        //    return;
 
         cbUp?.Invoke();
     }
 
     public void LiftDown()
     {
-        if (!bLiftDownOperatable)
-            return;
+        //if (!bLiftDownOperatable)
+        //    return;
 
         cbDown?.Invoke();
     }

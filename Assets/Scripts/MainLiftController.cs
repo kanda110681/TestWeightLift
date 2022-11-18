@@ -269,7 +269,7 @@ public class MainLiftController : MonoBehaviour
             return;
         }
 
-        mainLiftGO.transform.position += (Vector3.up * speed);
+        mainLiftGO.transform.position += (Vector3.up * speed * Time.deltaTime);
        // UpdateRopeLinkPhysics(1);
     }
 
@@ -285,7 +285,7 @@ public class MainLiftController : MonoBehaviour
             return;
         }
                 
-        mainLiftGO.transform.position -= (Vector3.up * speed);
+        mainLiftGO.transform.position -= (Vector3.up * speed * Time.deltaTime);
        // UpdateRopeLinkPhysics(-1);
     }
 

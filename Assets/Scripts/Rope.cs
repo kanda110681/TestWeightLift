@@ -32,7 +32,7 @@ public class RopeLink
         rb.drag = 0.2f;
         rb.angularDrag = 1f;
 
-        rb.freezeRotation = true;
+       // rb.freezeRotation = true;
 
         var bc = go.AddComponent<BoxCollider>();
         bc.center = Vector3.zero;
@@ -53,7 +53,7 @@ public class Rope : MonoBehaviour
     public RopeLink ropeTailEnd = null;
 
     LineRenderer lr; 
-    public float linkDispSize = 1.0f;
+    public float linkDispSize = 2.0f;
     public float spring = 0.2f;
     public float damper = 0.2f;
 
